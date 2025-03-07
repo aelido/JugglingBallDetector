@@ -3,9 +3,11 @@ package Filters;
 import Interfaces.PixelFilter;
 import core.DImage;
 
+import java.awt.*;
+
 public class ColorMask implements PixelFilter {
-    private short rt=0, gt=200, bt=0;
-    private double threshold = 150;
+    private float th;
+    private double threshold = 0.1;
 
     @Override
     public DImage processImage(DImage img) {
@@ -13,10 +15,17 @@ public class ColorMask implements PixelFilter {
         short[][] gg = img.getGreenChannel();
         short[][] bb = img.getBlueChannel();
 
+        float[] hsv = new float[3];
 
         for (int r = 0; r < rr.length; r++) {
             for (int c = 0; c < rr[r].length; c++) {
-                short val = (short)((dist(rr[r][c],gg[r][c],bb[r][c])>threshold)?0:255);
+
+                Color.RGBtoHSB(rr[r][c],gg[r][c],bb[r][c],hsv);
+                boolean hCheck = Math.abs(th-hsv[0])<=threshold;
+                boolean sCheck = 1-hsv[1]<=0.5;
+                boolean vCheck = 1-Math.abs(hsv[2]-10)<=0.7;
+                short val = (short)((hCheck&&sCheck&vCheck)?255:0);
+                if (r==0 && c==0) System.out.println(hsv[2]);
                 rr[r][c] = val;
                 gg[r][c] = val;
                 bb[r][c] = val;
@@ -27,7 +36,7 @@ public class ColorMask implements PixelFilter {
         return img;
     }
 
-    private double dist(short ro, short go, short bo) {
+    private double dist(short ro, short go, short bo, short rt, short gt, short bt) {
         return Math.sqrt((ro-rt)*(ro-rt)+(go-gt)*(go-gt)+(bo-bt)*(bo-bt));
     }
 }
