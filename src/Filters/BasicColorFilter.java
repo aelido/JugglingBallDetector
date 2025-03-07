@@ -12,7 +12,9 @@ public class BasicColorFilter implements PixelFilter {
         short[][] green = img.getGreenChannel();
         short[][] blue = img.getBlueChannel();
 
-        // Do stuff with color channels here
+        red[0][0]=0;
+        green[0][0]=0;
+        blue[0][0]=0;
 
         img.setColorChannels(red, green, blue);
         return img;
