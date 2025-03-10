@@ -1,9 +1,13 @@
 package Filters;
 
+import Interfaces.Interactive;
 import Interfaces.PixelFilter;
 import core.DImage;
 
-public class ColorMask implements PixelFilter {
+import java.awt.event.KeyEvent;
+import java.security.Key;
+
+public class ColorMask implements PixelFilter, Interactive {
     private short rt=0, gt=200, bt=0;
     private double threshold = 150;
 
@@ -12,7 +16,6 @@ public class ColorMask implements PixelFilter {
         short[][] rr = img.getRedChannel();
         short[][] gg = img.getGreenChannel();
         short[][] bb = img.getBlueChannel();
-
 
         for (int r = 0; r < rr.length; r++) {
             for (int c = 0; c < rr[r].length; c++) {
@@ -29,6 +32,17 @@ public class ColorMask implements PixelFilter {
 
     private double dist(short ro, short go, short bo) {
         return Math.sqrt((ro-rt)*(ro-rt)+(go-gt)*(go-gt)+(bo-bt)*(bo-bt));
+    }
+
+    @Override
+    public void keyPressed(char key) {
+        if(key == '='){threshold += 5;}
+        if(key == '-'){threshold -= 5;}
+    }
+
+
+    @Override
+    public void mouseClicked(int mouseX, int mouseY, DImage img) {
     }
 }
 
