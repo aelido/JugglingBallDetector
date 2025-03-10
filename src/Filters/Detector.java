@@ -9,6 +9,7 @@ public class Detector implements PixelFilter {
     @Override
     public DImage processImage(DImage img) {
         PixelFilter[] filterList = {
+                new Blur(),
                 new ColorMask()
         };
         for (PixelFilter filter : filterList) {
