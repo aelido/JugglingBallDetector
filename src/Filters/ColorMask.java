@@ -6,7 +6,7 @@ import core.DImage;
 
 import java.awt.*;
 
-public class ColorMask implements PixelFilter {
+public class ColorMask implements PixelFilter, Interactive {
     private double th=0.05;
     private double threshold = 0.1;
 
