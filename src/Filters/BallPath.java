@@ -1,10 +1,7 @@
 package Filters;
 
-import Interfaces.Interactive;
 import Interfaces.PixelFilter;
 import core.DImage;
-
-import java.awt.*;
 
 public class BallPath implements PixelFilter {
     private short[][] targetHSVtoRGB;
