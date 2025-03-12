@@ -7,15 +7,36 @@ import core.DImage;
 import java.awt.*;
 
 public class ColorMask implements PixelFilter, Interactive {
-    private double thresholdHue = 0.1;
-    private double[] targetHues = {0.9, 0.15, 0.3, 0.6};
-    private double[] targetSats = {0.7, 0.7, 0.4, 0.4};
-    private short[][] targetHueSets= {
-            {255,0,0}, {255,100,0}, {0,255,0}, {0,0,255}
-    };
+    private double hueDist;
+    private double[] targetHues, targetSats;
+    private short[][] targetHSVtoRGB;
+
+    public ColorMask() {
+    }
+
+    public ColorMask setHueDist(double hueDist) {
+        this.hueDist = hueDist;
+        return this;
+    }
+
+    public ColorMask setTargetHSVtoRGB(short[][] targetHSVtoRGB) {
+        this.targetHSVtoRGB = targetHSVtoRGB;
+        return this;
+    }
+
+    public ColorMask setTargetHues(double[] targetHues) {
+        this.targetHues = targetHues;
+        return this;
+    }
+
+    public ColorMask setTargetSats(double[] targetSats) {
+        this.targetSats = targetSats;
+        return this;
+    }
 
     @Override
     public DImage processImage(DImage img) {
+        if (targetSats==null) return img;
         short[][] rr = img.getRedChannel();
         short[][] gg = img.getGreenChannel();
         short[][] bb = img.getBlueChannel();
@@ -32,7 +53,7 @@ public class ColorMask implements PixelFilter, Interactive {
                         double sat = targetSats[i];
                         if (checkDist(hsv[0],hue)) {
                             if (hsv[1] < sat) continue;
-                            rgb = targetHueSets[i];
+                            rgb = targetHSVtoRGB[i];
                             break;
                         }
                     }
@@ -54,13 +75,13 @@ public class ColorMask implements PixelFilter, Interactive {
         double dif2 = Math.abs(curHue-tarHue+1);
         double dif3 = Math.abs(curHue-tarHue-1);
         double diff = Math.min(Math.min(dif1,dif2),dif3);
-        return diff < thresholdHue;
+        return diff < hueDist;
     }
 
     @Override
     public void keyPressed(char key) {
-        if(key == '='){thresholdHue += 5;}
-        if(key == '-'){thresholdHue -= 5;}
+        if(key == '='){hueDist += 5;}
+        if(key == '-'){hueDist -= 5;}
     }
 
 
