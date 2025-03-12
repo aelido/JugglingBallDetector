@@ -7,8 +7,12 @@ import core.DImage;
 import java.awt.*;
 
 public class ColorMask implements PixelFilter, Interactive {
-    private double th=0.05;
-    private double threshold = 0.1;
+    private double thresholdHue = 0.1;
+    private double[] targetHues = {0.9, 0.15, 0.3, 0.6};
+    private double[] targetSats = {0.7, 0.7, 0.4, 0.4};
+    private short[][] targetHueSets= {
+            {255,0,0}, {255,100,0}, {0,255,0}, {0,0,255}
+    };
 
     @Override
     public DImage processImage(DImage img) {
@@ -21,14 +25,21 @@ public class ColorMask implements PixelFilter, Interactive {
             for (int c = 0; c < rr[r].length; c++) {
 
                 Color.RGBtoHSB(rr[r][c],gg[r][c],bb[r][c],hsv);
-//                boolean hCheck = Math.abs(th-hsv[0])<=threshold || Math.abs(th-hsv[0]-360)<=threshold || Math.abs(th-hsv[0]+360) <= threshold;
-                boolean sCheck = hsv[1]>=0.5;
-//                boolean vCheck = 1-Math.abs(hsv[2]-10)<=0.7;
-                short val = (short)((sCheck)?255:0);
-                if (r==0 && c==0) System.out.println(hsv[2]);
-                rr[r][c] = val;
-                gg[r][c] = val;
-                bb[r][c] = val;
+                short[] rgb = new short[3];
+                if (hsv[1]>=0.5) {
+                    for (int i=0; i<targetHues.length; i++) {
+                        double hue = targetHues[i];
+                        double sat = targetSats[i];
+                        if (checkDist(hsv[0],hue)) {
+                            if (hsv[1] < sat) continue;
+                            rgb = targetHueSets[i];
+                            break;
+                        }
+                    }
+                }
+                rr[r][c] = rgb[0];
+                gg[r][c] = rgb[1];
+                bb[r][c] = rgb[2];
             }
         }
 
@@ -36,14 +47,20 @@ public class ColorMask implements PixelFilter, Interactive {
         return img;
     }
 
-    private double dist(short ro, short go, short bo, short rt, short gt, short bt) {
-        return Math.sqrt((ro-rt)*(ro-rt)+(go-gt)*(go-gt)+(bo-bt)*(bo-bt));
+
+
+    private boolean checkDist(double curHue, double tarHue) {
+        double dif1 = Math.abs(curHue-tarHue);
+        double dif2 = Math.abs(curHue-tarHue+1);
+        double dif3 = Math.abs(curHue-tarHue-1);
+        double diff = Math.min(Math.min(dif1,dif2),dif3);
+        return diff < thresholdHue;
     }
 
     @Override
     public void keyPressed(char key) {
-        if(key == '='){threshold += 5;}
-        if(key == '-'){threshold -= 5;}
+        if(key == '='){thresholdHue += 5;}
+        if(key == '-'){thresholdHue -= 5;}
     }
 
 
