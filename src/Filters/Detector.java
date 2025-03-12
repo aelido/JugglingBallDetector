@@ -17,7 +17,8 @@ public class Detector implements PixelFilter {
     public DImage processImage(DImage img) {
         PixelFilter[] filterList = {
                 new Blur(),
-                new ColorMask().setHueDist(hueDist).setTargetHues(targetHues).setTargetSats(targetSats).setTargetHSVtoRGB(targetHSVtoRGB)
+                new ColorMask().setHueDist(hueDist).setTargetHues(targetHues).setTargetSats(targetSats).setTargetHSVtoRGB(targetHSVtoRGB),
+                new BallPath().setTargetHSVtoRGB(targetHSVtoRGB)
         };
         for (PixelFilter filter : filterList) {
             img = filter.processImage(img);
