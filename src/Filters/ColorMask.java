@@ -6,7 +6,7 @@ import core.DImage;
 
 import java.awt.*;
 
-public class ColorMask implements PixelFilter, Interactive {
+public class ColorMask implements PixelFilter {
     private double hueDist;
     private double[] targetHues, targetSats;
     private short[][] targetHSVtoRGB;
@@ -76,17 +76,6 @@ public class ColorMask implements PixelFilter, Interactive {
         double dif3 = Math.abs(curHue-tarHue-1);
         double diff = Math.min(Math.min(dif1,dif2),dif3);
         return diff < hueDist;
-    }
-
-    @Override
-    public void keyPressed(char key) {
-        if(key == '='){hueDist += 5;}
-        if(key == '-'){hueDist -= 5;}
-    }
-
-
-    @Override
-    public void mouseClicked(int mouseX, int mouseY, DImage img) {
     }
 }
 
