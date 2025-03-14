@@ -6,8 +6,8 @@ import core.DImage;
 
 import java.awt.*;
 
-public class ColorMask implements PixelFilter {
-    private double th=0.05;
+public class ColorMask implements PixelFilter{
+
     private double threshold = 0.1;
 
     @Override
@@ -40,15 +40,5 @@ public class ColorMask implements PixelFilter {
         return Math.sqrt((ro-rt)*(ro-rt)+(go-gt)*(go-gt)+(bo-bt)*(bo-bt));
     }
 
-    @Override
-    public void keyPressed(char key) {
-        if(key == '='){threshold += 5;}
-        if(key == '-'){threshold -= 5;}
-    }
-
-
-    @Override
-    public void mouseClicked(int mouseX, int mouseY, DImage img) {
-    }
 }
 

@@ -61,15 +61,10 @@ public class Blur implements PixelFilter {
         double val = 0;
         for (int y=0; y<kernel.length; y++) {
             for (int x=0; x<kernel[0].length; x++) {
-                int row = Math.min(r+y,img.length-1);//Keeps in bounds!
-                int col = Math.min(c+x,img.length-1);
-
-                val += img[row][col] * kernel[y][x];
+                val += img[r+y][c+x] * kernel[y][x];
             }
         }
         return (short)(val/kernelWeight);
     }
-
-
 }
 
