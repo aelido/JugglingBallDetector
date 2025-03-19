@@ -6,12 +6,37 @@ import core.DImage;
 
 import java.awt.*;
 
-public class ColorMask implements PixelFilter{
+public class ColorMask implements PixelFilter {
+    private double hueDist;
+    private double[] targetHues, targetSats;
+    private short[][] targetHSVtoRGB;
 
-    private double threshold = 0.1;
+    public ColorMask() {
+    }
+
+    public ColorMask setHueDist(double hueDist) {
+        this.hueDist = hueDist;
+        return this;
+    }
+
+    public ColorMask setTargetHSVtoRGB(short[][] targetHSVtoRGB) {
+        this.targetHSVtoRGB = targetHSVtoRGB;
+        return this;
+    }
+
+    public ColorMask setTargetHues(double[] targetHues) {
+        this.targetHues = targetHues;
+        return this;
+    }
+
+    public ColorMask setTargetSats(double[] targetSats) {
+        this.targetSats = targetSats;
+        return this;
+    }
 
     @Override
     public DImage processImage(DImage img) {
+        if (targetSats==null) return img;
         short[][] rr = img.getRedChannel();
         short[][] gg = img.getGreenChannel();
         short[][] bb = img.getBlueChannel();
@@ -21,14 +46,21 @@ public class ColorMask implements PixelFilter{
             for (int c = 0; c < rr[r].length; c++) {
 
                 Color.RGBtoHSB(rr[r][c],gg[r][c],bb[r][c],hsv);
-//                boolean hCheck = Math.abs(th-hsv[0])<=threshold || Math.abs(th-hsv[0]-360)<=threshold || Math.abs(th-hsv[0]+360) <= threshold;
-                boolean sCheck = hsv[1]>=0.5;
-//                boolean vCheck = 1-Math.abs(hsv[2]-10)<=0.7;
-                short val = (short)((sCheck)?255:0);
-                if (r==0 && c==0) System.out.println(hsv[2]);
-                rr[r][c] = val;
-                gg[r][c] = val;
-                bb[r][c] = val;
+                short[] rgb = new short[3];
+                if (hsv[1]>=0.5) {
+                    for (int i=0; i<targetHues.length; i++) {
+                        double hue = targetHues[i];
+                        double sat = targetSats[i];
+                        if (checkDist(hsv[0],hue)) {
+                            if (hsv[1] < sat) continue;
+                            rgb = targetHSVtoRGB[i];
+                            break;
+                        }
+                    }
+                }
+                rr[r][c] = rgb[0];
+                gg[r][c] = rgb[1];
+                bb[r][c] = rgb[2];
             }
         }
 
@@ -36,9 +68,14 @@ public class ColorMask implements PixelFilter{
         return img;
     }
 
-    private double dist(short ro, short go, short bo, short rt, short gt, short bt) {
-        return Math.sqrt((ro-rt)*(ro-rt)+(go-gt)*(go-gt)+(bo-bt)*(bo-bt));
-    }
 
+
+    private boolean checkDist(double curHue, double tarHue) {
+        double dif1 = Math.abs(curHue-tarHue);
+        double dif2 = Math.abs(curHue-tarHue+1);
+        double dif3 = Math.abs(curHue-tarHue-1);
+        double diff = Math.min(Math.min(dif1,dif2),dif3);
+        return diff < hueDist;
+    }
 }
 
