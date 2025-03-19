@@ -3,14 +3,17 @@ package Filters;
 import Interfaces.PixelFilter;
 import core.DImage;
 
+import java.util.ArrayList;
+
 public class BallPath implements PixelFilter {
     private short[][] targetHSVtoRGB;
-    private int[][] coords;
+
+//    private int[][] coords;
 
 
     public BallPath setTargetHSVtoRGB(short[][] targetHSVtoRGB) {
         this.targetHSVtoRGB = targetHSVtoRGB;
-        coords = new int[targetHSVtoRGB.length][2];
+//        coords = new int[targetHSVtoRGB.length][2];
         return this;
     }
 
@@ -25,14 +28,16 @@ public class BallPath implements PixelFilter {
         short[][] gc = gg.clone();
         short[][] bc = bb.clone();
 
-        int[] coordinate;
+        ArrayList<Point> coordinates;
         for (short[] rgb : targetHSVtoRGB) {
-            coordinate = circleLocation(rr,gg,bb,rgb[0],rgb[1],rgb[2]);
-            int y = coordinate[0], x = coordinate[1];
-            if (x<0 || y<0) continue;
-            System.out.println(y + ", " + x);
-            drawDot(rc,gc,bc,y,x,3);
-            drawLine(rc,gc,bc,y,x,);
+            coordinates = circleLocations(rr,gg,bb,rgb[0],rgb[1],rgb[2]);
+            for (Point coords : coordinates) {
+                int y = coords.getY(), x = coords.getX();
+                if (x<0 || y<0 || y>= rr.length || x>=rr[0].length) continue;
+//                System.out.println(y + ", " + x);
+                drawDot(rc,gc,bc,y,x,3);
+//            drawLine(rc,gc,bc,y,x,0,0);
+            }
         }
 
         img.setColorChannels(rr,gg,bb);
@@ -40,22 +45,83 @@ public class BallPath implements PixelFilter {
     }
 
     boolean reset=false;
-    int[] circleLocation(short[][] ra, short[][] ga, short[][] ba, short r, short g, short b) {
-        long xAv = -1, yAv = -1;
-        long count = 0;
-        for (int y=0; y< ra.length; y+=2) {
-            for (int x=0; x< ra[0].length; x+=2) {
-                if (sameColor(ra[y][x],ga[y][x],ba[y][x],r,g,b)) {
-                    count++;
-                    xAv+=x; yAv+=y;
+//    int[] circleLocation(short[][] ra, short[][] ga, short[][] ba, short r, short g, short b) {
+//        long xAv = -1, yAv = -1;
+//        long count = 0;
+//        for (int y=0; y< ra.length; y+=2) {
+//            for (int x=0; x< ra[0].length; x+=2) {
+//                if (sameColor(ra[y][x],ga[y][x],ba[y][x],r,g,b)) {
+//                    count++;
+//                    xAv+=x; yAv+=y;
+//                }
+//            }
+//        }
+//        if (count==0) return new int[]{-1,-1};
+//        return new int[]{(int)(yAv/count), (int)(xAv/count)};
+//    }
+    ArrayList<Point> circleLocations(short[][] ra, short[][] ga, short[][] ba, short r, short g, short b) {
+        ArrayList<Point> out = new ArrayList<>();
+        ArrayList<Point> points = getPoints(ra,ga,ba,r,g,b);
+        long sumY=0, sumX=0;
+        int thresholdArea = 20;
+        int count=0;
+        while (!points.isEmpty()) {
+            Point curP = null;
+            if (count==0) {
+                curP = points.removeFirst();
+                sumY=curP.getY();
+                sumX=curP.getX();
+                count++;
+                continue;
+            }
+
+            int threshDist = (int)(count*1.75); // a little over half-PI
+            int avY = (int)(sumY/count), avX =(int)(sumX/count);
+            int shortest = 10000;
+            for (Point p : points) {
+                int dist = p.dist(avY,avX);
+                if (dist<shortest) {
+                    shortest=dist;
+                }
+                if (dist <= threshDist) {
+                    curP=p; break;
                 }
             }
+//            System.out.println(threshDist);
+
+            if (curP!=null) {
+                sumY+=curP.getY();
+                sumX+=curP.getX();
+                points.remove(curP);
+                count++;
+                if (!points.isEmpty()) continue;
+            }
+            if (count>thresholdArea) {
+                out.add(new Point(avY,avX));
+            }
+            count=0;
+            sumY=0;
+            sumX=0;
         }
-        if (count==0) return new int[]{-1,-1};
-        return new int[]{(int)(yAv/count), (int)(xAv/count)};
+
+        return out;
     }
+    ArrayList<Point> getPoints(short[][] ra, short[][] ga, short[][] ba, short r, short g, short b) {
+        ArrayList<Point> out = new ArrayList<>();
+        for (int y=0; y<ra.length; y++) {
+            for (int x=0; x<ra[0].length; x++) {
+                if (ra[y][x]!=r) continue;
+                if (ga[y][x]!=g) continue;
+                if (ba[y][x]!=b) continue;
+                out.add(new Point(y,x));
+            }
+        }
+        return out;
+    }
+
+
     void drawDot(short[][]ra, short[][]ga, short[][]ba, int y, int x, int dotSize) {
-        for (int r=Math.max(0,y-dotSize); r<=y+dotSize && y< ra.length; r++) {
+        for (int r=Math.max(0,y-dotSize); r<=y+dotSize && r< ra.length; r++) {
             for (int c=Math.max(0,x-dotSize); c<=x+dotSize && c< ra[0].length; c++) {
                 ra[r][c] = 255;
                 ga[r][c] = 255;
