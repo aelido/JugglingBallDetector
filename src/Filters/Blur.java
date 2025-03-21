@@ -17,29 +17,35 @@ public class Blur implements PixelFilter {
     }
 
     public void ask() {
-        String l = JOptionPane.showInputDialog("Would you like to change Kernel Settings?");
+        String l = JOptionPane.showInputDialog("Would you like to change Kernel Settings? (Do not input size larger than 6)");
         if (l.equals("yes")) {
             kernelSettings();
         } else {
             AutoKernel();
         }
+        //ask if kernel size wants to be changed for the blur effect.
     }
 
     public void kernelSettings() {
         // System.out.println("This has ran!");
         String r = JOptionPane.showInputDialog("Enter Size of Kernel: ");
-        String l = JOptionPane.showInputDialog("Enter Kernel number: ");
         size = Integer.parseInt(r);
-        int val = Integer.parseInt(l);
         kernel = new double[size][size];
+        //Get size and make kernel according to the size.
+        String l = JOptionPane.showInputDialog("Enter Kernel number: ");
+        int val = Integer.parseInt(l);
+        //Get the number inside the kernel
         kernelWeight = 0;
         for (int y = 0; y < kernel.length; y++) {
             for (int x = 0; x < kernel[0].length; x++) kernel[y][x] = val;
+            //Each Kernel value is set to val given above
         }
         for (double[] doubles : kernel) {
             for (int x = 0; x < kernel[0].length; x++) kernelWeight += doubles[x];
+            //kernelWeight adjusted
         }
         if (kernelWeight == 0) kernelWeight = 1;
+        //clipper
     }
 
     public void AutoKernel() {
@@ -52,6 +58,7 @@ public class Blur implements PixelFilter {
             for (int x = 0; x < kernel[0].length; x++) kernelWeight += doubles[x];
         }
         if (kernelWeight == 0) kernelWeight = 1;
+        //if ask method hits else case, run this method for a default kernel and value.(preferable size: 3 - 5)
     }
 
     @Override
@@ -73,7 +80,7 @@ public class Blur implements PixelFilter {
                 bc[r + (size / 2)][c + (size / 2)] = kernelValue(bb, kernel, r, c);
             }
         }
-
+        //runs our preset or custom kernel above
         img.setColorChannels(rc, gc, bc);
         return img;
     }
